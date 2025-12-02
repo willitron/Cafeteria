@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Compras{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-bag-check"></i> Historial de Compras</h2>
+    <a href="{{ url_for('compras.nueva') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Nueva Compra
+    </a>
+</div>
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nº Documento</th>
+                        <th>Proveedor</th>
+                        <th>Fecha</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for compra in compras %}
+                    <tr>
+                        <td><code>{{ compra.numero_documento }}</code></td>
+                        <td>{{ compra.nombre_proveedor }}</td>
+                        <td>{{ compra.fecha.strftime('%d/%m/%Y') }}</td>
+                        <td><span class="badge bg-info">{{ compra.items|length }} items</span></td>
+                        <td class="fw-bold">Bs {{ "%.2f"|format(compra.total) }}</td>
+                        <td>
+                            <a href="{{ url_for('compras.ver', id=compra.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

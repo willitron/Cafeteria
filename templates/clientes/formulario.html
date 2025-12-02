@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Editar' if cliente else 'Nuevo' }} Cliente{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-person-{% if cliente %}check{% else %}plus{% endif %}"></i>
+                    {{ 'Editar' if cliente else 'Nuevo' }} Cliente
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Nombre *</label>
+                            <input type="text" name="nombre" class="form-control" 
+                                   value="{{ cliente.nombre if cliente else '' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Apellido</label>
+                            <input type="text" name="apellido" class="form-control" 
+                                   value="{{ cliente.apellido if cliente else '' }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Teléfono</label>
+                        <input type="tel" name="telefono" class="form-control" 
+                               value="{{ cliente.telefono if cliente else '' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Email</label>
+                        <input type="email" name="email" class="form-control" 
+                               value="{{ cliente.email if cliente else '' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tipo de Cliente</label>
+                        <select name="tipo" class="form-select">
+                            <option value="regular" {% if cliente and cliente.tipo == 'regular' %}selected{% endif %}>Regular</option>
+                            <option value="vip" {% if cliente and cliente.tipo == 'vip' %}selected{% endif %}>VIP</option>
+                            <option value="mayorista" {% if cliente and cliente.tipo == 'mayorista' %}selected{% endif %}>Mayorista</option>
+                        </select>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{{ url_for('clientes.listar') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

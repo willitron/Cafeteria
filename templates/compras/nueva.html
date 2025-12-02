@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Nueva Compra{% endblock %}
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-bag-plus"></i> Registrar Nueva Compra</h2>
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card mb-3">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Seleccionar Productos</h5>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                {% for producto in productos %}
+                <div class="border-bottom p-3 producto-compra" 
+                     data-id="{{ producto.id }}"
+                     data-nombre="{{ producto.nombre }}"
+                     onclick="agregarProductoCompra(this)">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6>{{ producto.nombre }}</h6>
+                            <small class="text-muted">Stock actual: {{ producto.stock }}</small>
+                        </div>
+                        <button class="btn btn-sm btn-success">
+                            <i class="bi bi-plus"></i> Agregar
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Detalle de Compra</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="formCompra">
+                    <input type="hidden" name="items" id="itemsCompra">
+                    <input type="hidden" name="subtotal" id="subtotalCompra">
+                    <input type="hidden" name="impuesto" id="impuestoCompra" value="0">
+                    <input type="hidden" name="total" id="totalCompra">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Proveedor *</label>
+                        <input type="text" name="nombre_proveedor" class="form-control" required>
+                    </div>
+                    
+                    <div id="itemsListaCompra" class="mb-3"></div>
+                    
+                    <div class="alert alert-info">
+                        <strong>Total: Bs <span id="totalDisplayCompra">0.00</span></strong>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-check-circle"></i> Registrar Compra
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let carritoCompra = [];
+function agregarProductoCompra(el) {
+    const id = el.dataset.id;
+    const nombre = el.dataset.nombre;
+    const cantidad = prompt('Cantidad a comprar:', '1');
+    const costo = prompt('Costo unitario:', '0');
+    if (cantidad && costo) {
+        carritoCompra.push({
+            producto_id: id,
+            nombre: nombre,
+            cantidad: parseFloat(cantidad),
+            costo_unitario: parseFloat(costo),
+            total_linea: (parseFloat(cantidad) * parseFloat(costo)).toFixed(2)
+        });
+        actualizarCompra();
+    }
+}
+function actualizarCompra() {
+    let html = '';
+    let total = 0;
+    carritoCompra.forEach((item, i) => {
+        total += parseFloat(item.total_linea);
+        html += `<div class="border p-2 mb-2"><small>${item.nombre}<br>
+                 ${item.cantidad} x Bs \${item.costo_unitario} = <strong>Bs \${item.total_linea}</strong></small>
+                 <button type="button" class="btn btn-sm btn-danger float-end" onclick="carritoCompra.splice(${i},1);actualizarCompra()">×</button></div>`;
+    });
+    document.getElementById('itemsListaCompra').innerHTML = html;
+    document.getElementById('totalDisplayCompra').textContent = total.toFixed(2);
+    document.getElementById('itemsCompra').value = JSON.stringify(carritoCompra);
+    document.getElementById('subtotalCompra').value = total.toFixed(2);
+    document.getElementById('totalCompra').value = total.toFixed(2);
+}
+</script>
+{% endblock %}

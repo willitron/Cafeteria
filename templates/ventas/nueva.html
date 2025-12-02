@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Punto de Venta{% endblock %}
+
+{% block extra_css %}
+<style>
+    .producto-item {
+        cursor: pointer;
+        transition: all 0.2s;
+        border-left: 3px solid transparent;
+    }
+    
+    .producto-item:hover {
+        background-color: rgba(111, 78, 55, 0.05);
+        border-left-color: var(--primary-color);
+    }
+    
+    .carrito-item {
+        border-left: 3px solid var(--accent-color);
+    }
+    
+    .total-display {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 1.5rem;
+    }
+    
+    .cantidad-control {
+        width: 100px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2><i class="bi bi-cart-check"></i> Punto de Venta</h2>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('productos.catalogo') }}" class="btn btn-outline-primary">
+            <i class="bi bi-grid-3x3"></i> Ver Catálogo
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Panel de Productos -->
+    <div class="col-lg-7">
+        <div class="card mb-3">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-search"></i> Buscar Producto</h5>
+            </div>
+            <div class="card-body">
+                <input type="text" id="buscarProducto" class="form-control form-control-lg" 
+                       placeholder="Buscar por nombre o SKU..." autofocus>
+            </div>
+        </div>
+
+        <div class="card" style="max-height: 500px; overflow-y: auto;">
+            <div class="card-body p-2">
+                <div id="listaProductos">
+                    {% for producto in productos %}
+                    <div class="producto-item p-3 border-bottom" 
+                         data-id="{{ producto.id }}"
+                         data-nombre="{{ producto.nombre }}"
+                         data-precio="{{ producto.precio_venta }}"
+                         data-stock="{{ producto.stock }}"
+                         data-unidad="{{ producto.unidad }}"
+                         onclick="agregarProducto(this)">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">{{ producto.nombre }}</h6>
+                                <small class="text-muted">{{ producto.sku }} - Stock: {{ producto.stock }} {{ producto.unidad }}</small>
+                            </div>
+                            <div class="text-end">
+                                <div class="fs-5 text-primary fw-bold">Bs {{ "%.2f"|format(producto.precio_venta) }}</div>
+                                <button class="btn btn-sm btn-success mt-1">
+                                    <i class="bi bi-plus-circle"></i> Agregar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel de Carrito -->
+    <div class="col-lg-5">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-cart"></i> Carrito de Compra</h5>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                <div id="carritoItems">
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-cart-x fs-1"></i>
+                        <p class="mt-2">Carrito vacío</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="total-display text-center mb-3">
+                    <div class="fs-6">TOTAL A PAGAR</div>
+                    <div class="fs-1 fw-bold" id="totalDisplay">Bs 0.00</div>
+                </div>
+
+                <form method="POST" id="formVenta">
+                    <input type="hidden" name="items" id="itemsInput">
+                    <input type="hidden" name="subtotal" id="subtotalInput">
+                    <input type="hidden" name="impuesto" id="impuestoInput" value="0">
+                    <input type="hidden" name="descuento" id="descuentoInput" value="0">
+                    <input type="hidden" name="total" id="totalInput">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cliente (Opcional)</label>
+                        <select name="cliente_id" class="form-select">
+                            <option value="">Cliente General</option>
+                            {% for cliente in clientes %}
+                            <option value="{{ cliente.id }}">{{ cliente.nombre }} {{ cliente.apellido }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Método de Pago</label>
+                        <select name="metodo_pago_id" class="form-select" required>
+                            {% for metodo in metodos_pago %}
+                            <option value="{{ metodo.id }}">{{ metodo.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-danger" onclick="vaciarCarrito()">
+                            <i class="bi bi-trash"></i> Vaciar Carrito
+                        </button>
+                        <button type="submit" class="btn btn-success btn-lg" id="btnProcesar">
+                            <i class="bi bi-check-circle"></i> Procesar Venta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let carrito = [];
+
+// Buscar producto
+document.getElementById('buscarProducto').addEventListener('input', function(e) {
+    const termino = e.target.value.toLowerCase();
+    const productos = document.querySelectorAll('.producto-item');
+    
+    productos.forEach(prod => {
+        const nombre = prod.dataset.nombre.toLowerCase();
+        const sku = prod.querySelector('small').textContent.toLowerCase();
+        
+        if (nombre.includes(termino) || sku.includes(termino)) {
+            prod.style.display = '';
+        } else {
+            prod.style.display = 'none';
+        }
+    });
+});
+
+function agregarProducto(elemento) {
+    const id = elemento.dataset.id;
+    const nombre = elemento.dataset.nombre;
+    const precio = parseFloat(elemento.dataset.precio);
+    const stock = parseFloat(elemento.dataset.stock);
+    const unidad = elemento.dataset.unidad;
+    
+    const existe = carrito.find(item => item.id === id);
+    
+    if (existe) {
+        if (existe.cantidad < stock) {
+            existe.cantidad++;
+        } else {
+            alert('No hay suficiente stock disponible');
+            return;
+        }
+    } else {
+        if (stock > 0) {
+            carrito.push({
+                id: id,
+                nombre: nombre,
+                precio: precio,
+                cantidad: 1,
+                unidad: unidad,
+                stock: stock
+            });
+        } else {
+            alert('Producto sin stock');
+            return;
+        }
+    }
+    
+    actualizarCarrito();
+}
+
+function actualizarCarrito() {
+    const container = document.getElementById('carritoItems');
+    
+    if (carrito.length === 0) {
+        container.innerHTML = `
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-cart-x fs-1"></i>
+                <p class="mt-2">Carrito vacío</p>
+            </div>
+        `;
+        document.getElementById('totalDisplay').textContent = 'Bs 0.00';
+        document.getElementById('btnProcesar').disabled = true;
+        return;
+    }
+    
+    let html = '';
+    let total = 0;
+    
+    carrito.forEach((item, index) => {
+        const subtotal = item.precio * item.cantidad;
+        total += subtotal;
+        
+        html += `
+            <div class="carrito-item p-3 mb-2 bg-light rounded">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0">${item.nombre}</h6>
+                        <small class="text-muted">Bs \${item.precio.toFixed(2)} / ${item.unidad}</small>
+                    </div>
+                    <button class="btn btn-sm btn-danger" onclick="eliminarItem(${index})">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-secondary" onclick="cambiarCantidad(${index}, -1)">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <input type="number" class="form-control form-control-sm cantidad-control text-center" 
+                               value="Bs {item.cantidad}" min="1" max="Bs {item.stock}"
+                               onchange="setCantidad(${index}, this.value)">
+                        <button class="btn btn-outline-secondary" onclick="cambiarCantidad(${index}, 1)">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                    <strong class="text-success">Bs \${subtotal.toFixed(2)}</strong>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    document.getElementById('totalDisplay').textContent = 'Bs ' + total.toFixed(2);
+    document.getElementById('btnProcesar').disabled = false;
+    
+    // Actualizar campos ocultos
+    document.getElementById('subtotalInput').value = total.toFixed(2);
+    document.getElementById('totalInput').value = total.toFixed(2);
+    
+    const itemsData = carrito.map(item => ({
+        producto_id: item.id,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio,
+        descuento: 0,
+        total_linea: (item.precio * item.cantidad).toFixed(2)
+    }));
+    
+    document.getElementById('itemsInput').value = JSON.stringify(itemsData);
+}
+
+function cambiarCantidad(index, cambio) {
+    const item = carrito[index];
+    const nuevaCantidad = item.cantidad + cambio;
+    
+    if (nuevaCantidad <= 0) {
+        eliminarItem(index);
+    } else if (nuevaCantidad <= item.stock) {
+        item.cantidad = nuevaCantidad;
+        actualizarCarrito();
+    } else {
+        alert('No hay suficiente stock');
+    }
+}
+
+function setCantidad(index, valor) {
+    const cantidad = parseInt(valor);
+    if (cantidad > 0 && cantidad <= carrito[index].stock) {
+        carrito[index].cantidad = cantidad;
+        actualizarCarrito();
+    }
+}
+
+function eliminarItem(index) {
+    carrito.splice(index, 1);
+    actualizarCarrito();
+}
+
+function vaciarCarrito() {
+    if (confirm('¿Desea vaciar el carrito?')) {
+        carrito = [];
+        actualizarCarrito();
+    }
+}
+
+document.getElementById('formVenta').addEventListener('submit', function(e) {
+    if (carrito.length === 0) {
+        e.preventDefault();
+        alert('El carrito está vacío');
+        return false;
+    }
+    
+    if (!confirm('¿Confirmar venta?')) {
+        e.preventDefault();
+        return false;
+    }
+});
+
+// Cargar producto desde URL si existe
+const urlParams = new URLSearchParams(window.location.search);
+const productoId = urlParams.get('producto');
+if (productoId) {
+    const elemento = document.querySelector(`[data-id="Bs {productoId}"]`);
+    if (elemento) {
+        agregarProducto(elemento);
+    }
+}
+</script>
+{% endblock %}

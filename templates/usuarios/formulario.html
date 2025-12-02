@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Editar' if usuario else 'Nuevo' }} Usuario{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">{{ 'Editar' if usuario else 'Nuevo' }} Usuario</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Usuario *</label>
+                        <input type="text" name="usuario" class="form-control" 
+                               value="{{ usuario.usuario if usuario else '' }}" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Nombre *</label>
+                            <input type="text" name="nombre" class="form-control" 
+                                   value="{{ usuario.nombre if usuario else '' }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Apellido</label>
+                            <input type="text" name="apellido" class="form-control" 
+                                   value="{{ usuario.apellido if usuario else '' }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Rol</label>
+                        <select name="rol" class="form-select">
+                            <option value="cajero" {% if usuario and usuario.rol == 'cajero' %}selected{% endif %}>Cajero</option>
+                            <option value="administrador" {% if usuario and usuario.rol == 'administrador' %}selected{% endif %}>Administrador</option>
+                            <option value="gerente" {% if usuario and usuario.rol == 'gerente' %}selected{% endif %}>Gerente</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Contraseña {% if not usuario %}*{% else %}(dejar en blanco para no cambiar){% endif %}</label>
+                        <input type="password" name="password" class="form-control" {% if not usuario %}required{% endif %}>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{{ url_for('usuarios.listar') }}" class="btn btn-secondary">Cancelar</a>
+                        <button type="submit" class="btn btn-primary">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Detalle Compra{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Detalle de Compra - {{ compra.numero_documento }}</h4>
+    </div>
+    <div class="card-body">
+        <p><strong>Proveedor:</strong> {{ compra.nombre_proveedor }}</p>
+        <p><strong>Fecha:</strong> {{ compra.fecha.strftime('%d/%m/%Y %H:%M') }}</p>
+        <table class="table">
+            <thead><tr><th>Producto</th><th>Cantidad</th><th>Costo Unit.</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for item in compra.items %}
+                <tr>
+                    <td>{{ item.producto.nombre }}</td>
+                    <td>{{ item.cantidad }}</td>
+                    <td>Bs {{ "%.2f"|format(item.costo_unitario) }}</td>
+                    <td>Bs {{ "%.2f"|format(item.total_linea) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot class="table-light">
+                <tr><td colspan="3" class="text-end"><strong>TOTAL:</strong></td>
+                    <td><strong>Bs {{ "%.2f"|format(compra.total) }}</strong></td></tr>
+            </tfoot>
+        </table>
+        <a href="{{ url_for('compras.listar') }}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+{% endblock %}

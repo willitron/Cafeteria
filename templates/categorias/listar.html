@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Categorías{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-tag"></i> Categorías de Productos</h2>
+    <a href="{{ url_for('categorias.nueva') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nueva Categoría
+    </a>
+</div>
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+    {% for cat in categorias %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="icon-bg mx-auto mb-3">
+                    <i class="bi bi-folder"></i>
+                </div>
+                <h5 class="card-title">{{ cat.nombre }}</h5>
+                <p class="card-text text-muted small">{{ cat.descripcion or 'Sin descripción' }}</p>
+                <span class="badge bg-primary">{{ cat.productos|length }} productos</span>
+                <div class="d-flex gap-2 mt-3">
+                    <a href="{{ url_for('categorias.editar', id=cat.id) }}" class="btn btn-sm btn-outline-primary flex-grow-1">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="{{ url_for('categorias.eliminar', id=cat.id) }}" 
+                       class="btn btn-sm btn-outline-danger"
+                       onclick="return confirm('¿Eliminar esta categoría?')">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

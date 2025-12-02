@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Catálogo de Productos{% endblock %}
+
+{% block content %}
+<div class="page-header text-center">
+    <h1 class="display-4"><i class="bi bi-shop"></i> Catálogo de Productos</h1>
+    <p class="lead">Selecciona tus productos favoritos</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col">
+        <div class="btn-group" role="group">
+            <a href="{{ url_for('productos.catalogo') }}" 
+               class="btn btn-outline-primary {% if not categoria_actual %}active{% endif %}">
+                <i class="bi bi-grid-3x3"></i> Todos
+            </a>
+            {% for cat in categorias %}
+            <a href="{{ url_for('productos.catalogo', categoria=cat.id) }}" 
+               class="btn btn-outline-primary {% if categoria_actual == cat.id %}active{% endif %}">
+                {{ cat.nombre }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-auto">
+        <a href="{{ url_for('ventas.nueva') }}" class="btn btn-success">
+            <i class="bi bi-cart-check"></i> Ir a Punto de Venta
+        </a>
+    </div>
+</div>
+
+<div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+    {% for producto in productos %}
+    <div class="col">
+        <div class="card h-100">
+            <div class="icon-bg mx-auto mt-4 mb-3">
+                <i class="bi bi-{% if producto.categoria_id == 1 %}cup-hot{% elif producto.categoria_id == 2 %}cup-straw{% elif producto.categoria_id == 3 %}cake2{% else %}basket{% endif %}"></i>
+            </div>
+            <div class="card-body text-center d-flex flex-column">
+                <h5 class="card-title fw-bold">{{ producto.nombre }}</h5>
+                <p class="card-text text-muted small flex-grow-1">
+                    {{ producto.descripcion if producto.descripcion else 'Delicioso producto de nuestra cafetería' }}
+                </p>
+                <div class="mb-2">
+                    <span class="badge bg-secondary">
+                        <i class="bi bi-box"></i> Stock: {{ producto.stock }} {{ producto.unidad }}
+                    </span>
+                </div>
+                <div class="mb-3">
+                    <span class="text-primary fs-3 fw-bold">Bs {{ "%.2f"|format(producto.precio_venta) }}</span>
+                </div>
+                <a href="{{ url_for('ventas.nueva') }}?producto={{ producto.id }}" 
+                   class="btn btn-success w-100">
+                    <i class="bi bi-cart-plus"></i> Agregar al Carrito
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% if not productos %}
+<div class="alert alert-info text-center mt-5">
+    <i class="bi bi-info-circle fs-1"></i>
+    <h4 class="mt-3">No hay productos disponibles</h4>
+    <p>No hay productos en esta categoría en este momento.</p>
+</div>
+{% endif %}
+{% endblock %}

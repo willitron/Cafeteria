@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Lista de Ventas{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-receipt"></i> Historial de Ventas</h2>
+    <a href="{{ url_for('ventas.nueva') }}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Nueva Venta
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nº Documento</th>
+                        <th>Fecha</th>
+                        <th>Cliente</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for venta in ventas %}
+                    <tr>
+                        <td><code>{{ venta.numero_documento }}</code></td>
+                        <td>{{ venta.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            {% if venta.cliente %}
+                            {{ venta.cliente.nombre }} {{ venta.cliente.apellido }}
+                            {% else %}
+                            <span class="text-muted">Cliente General</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ venta.items|length }} items</span>
+                        </td>
+                        <td class="fw-bold text-success">Bs {{ "%.2f"|format(venta.total) }}</td>
+                        <td>
+                            {% if venta.estado == 'completada' %}
+                            <span class="badge bg-success">Completada</span>
+                            {% elif venta.estado == 'anulada' %}
+                            <span class="badge bg-danger">Anulada</span>
+                            {% else %}
+                            <span class="badge bg-warning">{{ venta.estado }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('ventas.ver', id=venta.id) }}" 
+                                   class="btn btn-outline-primary" title="Ver Detalle">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                {% if venta.estado == 'completada' %}
+                                <a href="{{ url_for('ventas.anular', id=venta.id) }}" 
+                                   class="btn btn-outline-danger"
+                                   onclick="return confirm('¿Anular esta venta?')"
+                                   title="Anular">
+                                    <i class="bi bi-x-circle"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if not ventas %}
+<div class="alert alert-info mt-3">
+    <i class="bi bi-info-circle"></i> No hay ventas registradas.
+</div>
+{% endif %}
+{% endblock %}

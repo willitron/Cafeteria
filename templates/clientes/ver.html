@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle del Cliente{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-circle"></i> Perfil del Cliente
+                    </h4>
+                    <a href="{{ url_for('clientes.listar') }}" class="btn btn-light btn-sm">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="icon-bg mb-3">
+                            <i class="bi bi-person fs-2"></i>
+                        </div>
+                        <h3 class="mb-1">{{ cliente.nombre }} {{ cliente.apellido }}</h3>
+                        <span class="badge bg-info fs-6">{{ cliente.tipo or 'regular' }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Información de Contacto</h5>
+                        <p><i class="bi bi-telephone"></i> {{ cliente.telefono or 'No registrado' }}</p>
+                        <p><i class="bi bi-envelope"></i> {{ cliente.email or 'No registrado' }}</p>
+                    </div>
+                </div>
+
+                <h5 class="mb-3"><i class="bi bi-clock-history"></i> Historial de Compras</h5>
+                {% if cliente.ventas %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Nº Documento</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in cliente.ventas[:10] %}
+                            <tr>
+                                <td>{{ venta.fecha.strftime('%d/%m/%Y') }}</td>
+                                <td><code>{{ venta.numero_documento }}</code></td>
+                                <td class="fw-bold text-success">Bs {{ "%.2f"|format(venta.total) }}</td>
+                                <td>
+                                    {% if venta.estado == 'completada' %}
+                                    <span class="badge bg-success">Completada</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Anulada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Este cliente aún no tiene compras registradas.
+                </div>
+                {% endif %}
+
+                <div class="d-flex gap-2 justify-content-end mt-4">
+                    <a href="{{ url_for('clientes.editar', id=cliente.id) }}" 
+                       class="btn btn-primary">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    <a href="{{ url_for('clientes.eliminar', id=cliente.id) }}" 
+                       class="btn btn-danger"
+                       onclick="return confirm('¿Eliminar este cliente?')">
+                        <i class="bi bi-trash"></i> Eliminar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

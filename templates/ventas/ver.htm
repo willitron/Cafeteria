@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Detalle de Venta{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="bi bi-receipt-cutoff"></i> Detalle de Venta
+                    </h4>
+                    <a href="{{ url_for('ventas.listar') }}" class="btn btn-light btn-sm">
+                        <i class="bi bi-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Información de la Venta -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <p><strong>Nº Documento:</strong> <code>{{ venta.numero_documento }}</code></p>
+                        <p><strong>Fecha:</strong> {{ venta.fecha.strftime('%d/%m/%Y %H:%M:%S') }}</p>
+                        <p><strong>Estado:</strong> 
+                            {% if venta.estado == 'completada' %}
+                            <span class="badge bg-success">Completada</span>
+                            {% else %}
+                            <span class="badge bg-danger">Anulada</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Cliente:</strong> 
+                            {% if venta.cliente %}
+                            {{ venta.cliente.nombre }} {{ venta.cliente.apellido }}
+                            {% else %}
+                            Cliente General
+                            {% endif %}
+                        </p>
+                        {% if venta.usuario %}
+                        <p><strong>Vendedor:</strong> {{ venta.usuario.nombre }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Detalle de Items -->
+                <h5 class="mb-3"><i class="bi bi-list-ul"></i> Items de la Venta</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Precio Unit.</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in venta.items %}
+                            <tr>
+                                <td>{{ item.producto.nombre }}</td>
+                                <td class="text-center">{{ item.cantidad }} {{ item.producto.unidad }}</td>
+                                <td class="text-end">${{ "%.2f"|format(item.precio_unitario) }}</td>
+                                <td class="text-end fw-bold">${{ "%.2f"|format(item.total_linea) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                                <td class="text-end">${{ "%.2f"|format(venta.subtotal) }}</td>
+                            </tr>
+                            {% if venta.impuesto > 0 %}
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Impuesto:</strong></td>
+                                <td class="text-end">${{ "%.2f"|format(venta.impuesto) }}</td>
+                            </tr>
+                            {% endif %}
+                            {% if venta.descuento > 0 %}
+                            <tr>
+                                <td colspan="3" class="text-end"><strong>Descuento:</strong></td>
+                                <td class="text-end text-danger">-${{ "%.2f"|format(venta.descuento) }}</td>
+                            </tr>
+                            {% endif %}
+                            <tr class="table-success">
+                                <td colspan="3" class="text-end"><strong class="fs-5">TOTAL:</strong></td>
+                                <td class="text-end"><strong class="fs-5">${{ "%.2f"|format(venta.total) }}</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Información de Pago -->
+                {% if venta.pagos %}
+                <h5 class="mt-4 mb-3"><i class="bi bi-credit-card"></i> Información de Pago</h5>
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Método</th>
+                                <th>Monto</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pago in venta.pagos %}
+                            <tr>
+                                <td>{{ pago.metodo_pago.nombre }}</td>
+                                <td>${{ "%.2f"|format(pago.monto) }}</td>
+                                <td>{{ pago.pagado_en.strftime('%d/%m/%Y %H:%M') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+
+                <!-- Acciones -->
+                <div class="d-flex gap-2 justify-content-end mt-4">
+                    {% if venta.estado == 'completada' %}
+                    <a href="{{ url_for('ventas.anular', id=venta.id) }}" 
+                       class="btn btn-danger"
+                       onclick="return confirm('¿Está seguro de anular esta venta?')">
+                        <i class="bi bi-x-circle"></i> Anular Venta
+                    </a>
+                    {% endif %}
+                    <button onclick="window.print()" class="btn btn-primary">
+                        <i class="bi bi-printer"></i> Imprimir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
